@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Price Viewer</title>
+</head>
+<body>
+    <h1>Stock Price Viewer</h1>
+    <form action="/plot" method="post">
+        <label for="ticker">Stock Ticker:</label>
+        <input type="text" id="ticker" name="ticker" required>
+        <br><br>
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+        <br><br>
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
+        <br><br>
+        <input type="submit" value="Get Stock Data">
+    </form>
+</body>
+</html>

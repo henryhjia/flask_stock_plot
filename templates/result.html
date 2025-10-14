@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Price Result</title>
+</head>
+<body>
+    <h1>{{ ticker }} Stock Price</h1>
+    <p><strong>Min Price:</strong> {{ min_price }}</p>
+    <p><strong>Max Price:</strong> {{ max_price }}</p>
+    <p><strong>Mean Price:</strong> {{ mean_price }}</p>
+    <img src="{{ plot_url }}" alt="Stock Price Plot">
+    <br><br>
+    <a href="/">Go Back</a>
+    <h2>Daily Prices</h2>
+    {{ data_table|safe }}
+</body>
+</html>
