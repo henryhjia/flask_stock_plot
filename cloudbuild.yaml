@@ -1,0 +1,4 @@
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gcloud', 'app', 'deploy', '--version', 'prod-$(date +%Y%m%d%H%M%S)', '--no-promote']
+  id: Deploy-to-App-Engine
