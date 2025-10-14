@@ -1,4 +1,13 @@
 steps:
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gcloud', 'app', 'deploy', '--version', 'prod-$(date +%Y%m%d%H%M%S)', '--no-promote']
-  id: Deploy-to-App-Engine
+# Step 1: Install dependencies
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'pip'
+  args: ['install', '-r', 'requirements.txt', '--user']
+
+# Step 2: Deploy the application to App Engine
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['app', 'deploy']
+
+# REQUIRED FIX: Specify the logging option
+options:
+  logging: CLOUD_LOGGING_ONLY
