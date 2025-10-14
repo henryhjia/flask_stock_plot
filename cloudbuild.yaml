@@ -1,6 +1,6 @@
 steps:
 # Step 0: Install dependencies
-- name: 'gcr.io/cloud-builders/python' # <-- CHANGE IS HERE
+- name: 'gcr.io/cloud-builders/python:3.10' # <-- CHANGE IS HERE (use a specific version)
   entrypoint: 'pip'
   args: ['install', '-r', 'requirements.txt', '--user']
 
