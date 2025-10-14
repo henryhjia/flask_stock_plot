@@ -4,8 +4,8 @@ steps:
     entrypoint: 'pip'
     args: ['install', '-r', 'requirements.txt', '--user']
 
-# Step 1: Deploy the application to App Engine
-- name: 'gcr.io/cloud-builders/gcloud'
+  # Step 1: Deploy the application to App Engine
+  - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy']
 
 options:
