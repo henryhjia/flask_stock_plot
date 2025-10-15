@@ -1,7 +1,7 @@
 steps:
 - name: 'python:3.10'
   entrypoint: 'pip'
-  args: ['install', '-r', 'requirements.txt', '--user']
+  args: ['install', '-r', 'requirements.txt', 'pytest']
 - name: 'python:3.10'
   entrypoint: 'pytest'
   args: ['tests/']
