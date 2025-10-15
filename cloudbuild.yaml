@@ -1,11 +1,24 @@
 steps:
 - name: 'python:3.10'
-  entrypoint: 'pip'
-  args: ['install', '-r', 'requirements.txt', 'pytest']
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    python3 -m venv /workspace/venv
+    source /workspace/venv/bin/activate
+    pip install -r requirements.txt
+    pip install pytest
+
 - name: 'python:3.10'
-  entrypoint: 'python3'
-  args: ['-m', 'pytest', 'tests/']
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    source /workspace/venv/bin/activate
+    python3 -m pytest tests/
+
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy']
+
 options:
   logging: CLOUD_LOGGING_ONLY
