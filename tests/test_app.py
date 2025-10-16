@@ -5,15 +5,84 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from app import app
+from app import app, db, User
 
-class AppTestCase(unittest.TestCase):
+class AuthTestCase(unittest.TestCase):
     def setUp(self):
+        app.config['TESTING'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         self.app = app.test_client()
-        self.app.testing = True
+        with app.app_context():
+            db.create_all()
+
+    def tearDown(self):
+        with app.app_context():
+            db.session.remove()
+            db.drop_all()
+
+    def test_register(self):
+        with app.app_context():
+            response = self.app.post('/register', data={
+                'username': 'testuser',
+                'password': 'password',
+                'confirm_password': 'password'
+            }, follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            with self.app as c:
+                with c.session_transaction() as sess:
+                    self.assertEqual(sess['_flashes'][0][1], 'Your account has been created! You are now able to log in')
+
+    def test_login_logout(self):
+        with app.app_context():
+            # First, register a user
+            self.app.post('/register', data={
+                'username': 'testuser',
+                'password': 'password',
+                'confirm_password': 'password'
+            })
+            # Then, log in
+            response = self.app.post('/login', data={
+                'username': 'testuser',
+                'password': 'password'
+            }, follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Stock Price Viewer', response.data)
+            # Now, log out
+            response = self.app.get('/logout', follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Login', response.data)
+
+    def test_protected_route(self):
+        with app.app_context():
+            response = self.app.get('/', follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Login', response.data)
+
+class PlotTestCase(unittest.TestCase):
+    def setUp(self):
+        app.config['TESTING'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        self.app = app.test_client()
+        with app.app_context():
+            db.create_all()
+            # Create a user
+            user = User(username='testuser', password='password')
+            db.session.add(user)
+            db.session.commit()
+
+    def tearDown(self):
+        with app.app_context():
+            db.session.remove()
+            db.drop_all()
 
     @patch('yfinance.download')
     def test_plot(self, mock_download):
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['_user_id'] = '1'
+                sess['_fresh'] = True
         # Create a sample DataFrame to be returned by the mock
         data = {
             'open': [150, 151, 152],
@@ -42,6 +111,10 @@ class AppTestCase(unittest.TestCase):
 
     @patch('yfinance.download')
     def test_plot_long_range(self, mock_download):
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['_user_id'] = '1'
+                sess['_fresh'] = True
         # Create a sample DataFrame with 30 days of data
         dates = pd.to_datetime(pd.date_range(start='2023-01-01', periods=30))
         data = {
@@ -67,6 +140,10 @@ class AppTestCase(unittest.TestCase):
 
     @patch('yfinance.download')
     def test_plot_no_data(self, mock_download):
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['_user_id'] = '1'
+                sess['_fresh'] = True
         # Mock yfinance.download to return an empty DataFrame
         mock_download.return_value = pd.DataFrame()
 

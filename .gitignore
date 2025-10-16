@@ -42,3 +42,6 @@ dist/
 *.egg-info/
 
 README.md
+
+# Local database
+site.db
