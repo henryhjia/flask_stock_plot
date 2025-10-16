@@ -54,7 +54,7 @@ def plot():
     ax = plt.gca()
     ax.xaxis.set_major_locator(mdates.DayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.gcf().autofmt_xdate() # Auto-formats the x-axis labels to fit
+    plt.xticks(rotation=90) # Rotates the x-axis labels to be vertical
 
 
     # Save it to a temporary buffer.
