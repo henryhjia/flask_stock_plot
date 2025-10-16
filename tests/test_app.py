@@ -34,7 +34,7 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'<strong>Max Price:</strong> 154.00', response.data)
         self.assertIn(b'<strong>Mean Price:</strong> 153.00', response.data)
         self.assertIn(b'data:image/png;base64,', response.data)
-        self.assertIn(b'<table border="1" class="dataframe data">', response.data)
+        self.assertIn(b'<table border="1" class="dataframe table table-striped">', response.data)
 
     @patch('yfinance.download')
     def test_plot_long_range(self, mock_download):
@@ -58,8 +58,8 @@ class AppTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         # Check that the data is truncated to 20 days
-        self.assertIn(b'2023-01-20', response.data)
-        self.assertNotIn(b'2023-01-21', response.data)
+        self.assertIn(b'2023-01-30', response.data)
+        self.assertNotIn(b'2023-01-10', response.data)
 
 if __name__ == '__main__':
     unittest.main()

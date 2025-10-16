@@ -29,6 +29,8 @@ def plot():
     if data.empty:
         return "No data found for the given ticker and date range."
 
+    data = data.sort_index(ascending=False)
+
     if len(data) > 20:
         data = data.head(20)
 
@@ -69,7 +71,7 @@ def plot():
                            max_price=f'{max_price:.2f}',
                            mean_price=f'{mean_price:.2f}',
                            plot_url=plot_url,
-                           data_table=data.to_html(classes='data', header="true"))
+                           data_table=data.to_html(classes=['table', 'table-striped'], header="true"))
 
 if __name__ == '__main__':
     app.run(debug=True)
