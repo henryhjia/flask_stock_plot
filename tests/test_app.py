@@ -16,11 +16,11 @@ class AppTestCase(unittest.TestCase):
     def test_plot(self, mock_download):
         # Create a sample DataFrame to be returned by the mock
         data = {
-            'Open': [150, 151, 152],
-            'High': [155, 156, 157],
-            'Low': [149, 150, 151],
-            'Close': [152, 153, 154],
-            'Volume': [1000, 1100, 1200]
+            'open': [150, 151, 152],
+            'high': [155, 156, 157],
+            'low': [149, 150, 151],
+            'close': [152, 153, 154],
+            'volume': [1000, 1100, 1200]
         }
         dates = pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03'])
         df = pd.DataFrame(data, index=dates)
@@ -45,11 +45,11 @@ class AppTestCase(unittest.TestCase):
         # Create a sample DataFrame with 30 days of data
         dates = pd.to_datetime(pd.date_range(start='2023-01-01', periods=30))
         data = {
-            'Open': [150 + i for i in range(30)],
-            'High': [155 + i for i in range(30)],
-            'Low': [149 + i for i in range(30)],
-            'Close': [152 + i for i in range(30)],
-            'Volume': [1000 + i * 10 for i in range(30)]
+            'open': [150 + i for i in range(30)],
+            'high': [155 + i for i in range(30)],
+            'low': [149 + i for i in range(30)],
+            'close': [152 + i for i in range(30)],
+            'volume': [1000 + i * 10 for i in range(30)]
         }
         df = pd.DataFrame(data, index=dates)
         mock_download.return_value = df

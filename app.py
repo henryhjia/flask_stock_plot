@@ -29,6 +29,14 @@ def plot():
 
     # Download the data
     data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
+    
+    new_columns = []
+    for col in data.columns:
+        if isinstance(col, tuple):
+            new_columns.append(col[0].lower())
+        else:
+            new_columns.append(col.lower())
+    data.columns = new_columns
 
     if data.empty:
         return "No data found for the given ticker and date range."
@@ -39,16 +47,16 @@ def plot():
         data = data.head(20)
 
     # Calculate statistics
-    min_val = data['Close'].min()
+    min_val = data['close'].min()
     min_price = min_val.iloc[0] if isinstance(min_val, pd.Series) else min_val
-    max_val = data['Close'].max()
+    max_val = data['close'].max()
     max_price = max_val.iloc[0] if isinstance(max_val, pd.Series) else max_val
-    mean_val = data['Close'].mean()
+    mean_val = data['close'].mean()
     mean_price = mean_val.iloc[0] if isinstance(mean_val, pd.Series) else mean_val
 
     # Generate the plot
     plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data['Close'])
+    plt.plot(data.index, data['close'], marker='o')
     plt.title(f'{ticker} Stock Price')
     plt.xlabel('Date')
     plt.ylabel('Price (USD)')
@@ -70,13 +78,21 @@ def plot():
     plot_url = f'data:image/png;base64,{plot_data}'
 
 
+    formatters = {
+        'open': '{:.2f}'.format,
+        'high': '{:.2f}'.format,
+        'low': '{:.2f}'.format,
+        'close': '{:.2f}'.format,
+        'volume': '{:,}'.format
+    }
+
     return render_template('result.html',
                            ticker=ticker,
                            min_price=f'{min_price:.2f}',
                            max_price=f'{max_price:.2f}',
                            mean_price=f'{mean_price:.2f}',
                            plot_url=plot_url,
-                           data_table=data.to_html(classes=['table', 'table-striped'], header="true"))
+                           data_table=data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters))
 
 if __name__ == '__main__':
     app.run(debug=True)
