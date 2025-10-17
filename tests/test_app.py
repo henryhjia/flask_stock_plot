@@ -65,5 +65,21 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'2023-01-30', response.data)
         self.assertNotIn(b'2023-01-10', response.data)
 
+    @patch('yfinance.download')
+    def test_plot_no_data(self, mock_download):
+        # Mock yfinance.download to return an empty DataFrame
+        mock_download.return_value = pd.DataFrame()
+
+        response = self.app.post('/plot', data={
+            'ticker': 'INVALID',
+            'start_date': '2023-01-01',
+            'end_date': '2023-01-03'
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'<title>Error</title>', response.data)
+        self.assertIn(b'No data found for the given ticker and date range.', response.data)
+        self.assertIn(b'<a href="/" class="btn btn-primary btn-block">Go Back</a>', response.data)
+
 if __name__ == '__main__':
     unittest.main()

@@ -39,7 +39,7 @@ def plot():
     data.columns = new_columns
 
     if data.empty:
-        return "No data found for the given ticker and date range."
+        return render_template('error.html')
 
     data = data.sort_index(ascending=False)
 
