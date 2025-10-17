@@ -10,6 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import matplotlib.dates as mdates
+from matplotlib.ticker import FuncFormatter
+
+def date_format(x, pos=None):
+    return mdates.num2date(x).strftime('%Y-%m-%d')
 
 app = Flask(__name__)
 
@@ -53,8 +57,9 @@ def plot():
     # Format the x-axis to show dates
     ax = plt.gca()
     ax.xaxis.set_major_locator(mdates.DayLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax.xaxis.set_major_formatter(FuncFormatter(date_format))
     plt.xticks(rotation=90) # Rotates the x-axis labels to be vertical
+    plt.tight_layout() # Adjust layout to prevent labels from being cut off
 
 
     # Save it to a temporary buffer.
