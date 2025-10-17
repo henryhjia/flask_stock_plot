@@ -56,7 +56,7 @@ def plot():
 
     # Generate the plot
     plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data['close'], marker='o')
+    plt.plot(range(len(data.index)), data['close'], marker='o')
     plt.title(f'{ticker} Stock Price')
     plt.xlabel('Date')
     plt.ylabel('Price (USD)')
@@ -64,9 +64,8 @@ def plot():
 
     # Format the x-axis to show dates
     ax = plt.gca()
-    ax.xaxis.set_major_locator(mdates.DayLocator())
-    ax.xaxis.set_major_formatter(FuncFormatter(date_format))
-    plt.xticks(rotation=90) # Rotates the x-axis labels to be vertical
+    ax.set_xticks(range(len(data.index))) # Set numerical ticks
+    ax.set_xticklabels([d.strftime('%Y-%m-%d') for d in data.index], rotation=90) # Set custom labels
     plt.tight_layout() # Adjust layout to prevent labels from being cut off
 
 
