@@ -21,9 +21,9 @@ import os
 def date_format(x, pos=None):
     return mdates.num2date(x).strftime('%Y-%m-%d')
 
-app = Flask(__name__)
+app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'))
 app.config['SECRET_KEY'] = 'a_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'site.db')
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -177,11 +177,22 @@ def plot():
                            plot_url=plot_url,
                            data_table=data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters))
 
+import sqlite3
+
 @app.cli.command('init-db')
 def init_db_command():
     """Creates the database tables."""
-    db.create_all()
-    print('Initialized the database.')
+    db_path = os.path.join(app.instance_path, 'site.db')
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+        conn = sqlite3.connect(db_path)
+        conn.close()
+
+        with app.app_context():
+            db.create_all()
+        print('Initialized the database.')
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True)
