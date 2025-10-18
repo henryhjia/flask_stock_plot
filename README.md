@@ -35,8 +35,9 @@
 
   To run locally:
   1. $ source venv/bin/activate
-  2. $ python app.py
-  3. On your browser, go to http://127.0.0.0:5000
+  2. $ pip install -r requirements.tx
+  3. $ python app.py
+  4. On your browser, go to http://127.0.0.0:5000
      The Stock Viewer GUI will appears and you can enter required data to get result.
 
   To test locally:
