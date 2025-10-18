@@ -40,5 +40,3 @@ htmlcov/
 build/
 dist/
 *.egg-info/
-
-README.md
