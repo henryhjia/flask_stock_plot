@@ -5,7 +5,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from app import app, db, User
+from flask import Flask, get_flashed_messages
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+import os
+
+# Import models and forms from app.py for test setup
+from app import User, RegistrationForm, LoginForm, load_user, register, login, logout, index, plot, init_db_command, app, db
 
 class AuthTestCase(unittest.TestCase):
     def setUp(self):
@@ -23,15 +29,15 @@ class AuthTestCase(unittest.TestCase):
 
     def test_register(self):
         with app.app_context():
-            response = self.app.post('/register', data={
-                'username': 'testuser',
-                'password': 'password',
-                'confirm_password': 'password'
-            }, follow_redirects=True)
-            self.assertEqual(response.status_code, 200)
-            with self.app as c:
-                with c.session_transaction() as sess:
-                    self.assertEqual(sess['_flashes'][0][1], 'Your account has been created! You are now able to log in')
+            with self.app as client:
+                response = client.post('/register', data={
+                    'username': 'testuser',
+                    'password': 'password',
+                    'confirm_password': 'password'
+                }, follow_redirects=True)
+                self.assertEqual(response.status_code, 200)
+                messages = get_flashed_messages(with_categories=True)
+                self.assertIn(('success', 'Your account has been created! You are now able to log in'), messages)
 
     def test_login_logout(self):
         with app.app_context():
@@ -42,7 +48,8 @@ class AuthTestCase(unittest.TestCase):
                 'confirm_password': 'password'
             })
             # Then, log in
-            response = self.app.post('/login', data={
+            with self.app as client:
+                response = client.post('/login', data={
                 'username': 'testuser',
                 'password': 'password'
             }, follow_redirects=True)
@@ -58,6 +65,17 @@ class AuthTestCase(unittest.TestCase):
             response = self.app.get('/', follow_redirects=True)
             self.assertEqual(response.status_code, 200)
             self.assertIn(b'Login', response.data)
+
+    def test_login_unregistered_user(self):
+        with app.app_context():
+            with self.app as client:
+                response = client.post('/login', data={
+                    'username': 'nonexistent',
+                    'password': 'password'
+                }, follow_redirects=True)
+                self.assertEqual(response.status_code, 200)
+                messages = get_flashed_messages(with_categories=True)
+                self.assertIn(('info', 'You are not registered yet. Please sign up.'), messages)
 
 class PlotTestCase(unittest.TestCase):
     def setUp(self):

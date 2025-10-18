@@ -91,7 +91,10 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
         else:
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            if user is None:
+                flash('You are not registered yet. Please sign up.', 'info')
+            else:
+                flash('Login Unsuccessful. Please check username and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 @app.route('/logout')
