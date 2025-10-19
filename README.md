@@ -2,7 +2,7 @@
   from yahoo finance for the date range. Then it will plot the stock price vs date.  It will also print out the most recent stock price up to 20 days.
 
   Here is the directory structures:
-
+  ```
     1 /home/henryjia/Projects/flask_stock_plot/
     2 ├───.gcloudignore             # Specifies files to ignore when deploying to Google Cloud.
     3 ├───.gitignore                # Specifies intentionally untracked files that Git should ignore.
@@ -31,7 +31,7 @@
    26     ├───include/...           # Header files for packages in the virtual environment.
    27     ├───lib/...               # Python libraries and packages in the virtual environment.
    28     └───share/...             # Shared data for packages in the virtual environment.
-
+  ```
 
   To run locally:
   1. $ source venv/bin/activate
