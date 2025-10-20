@@ -23,7 +23,7 @@ def index():
 
 @app.route('/plot', methods=['POST'])
 def plot():
-    ticker = request.form['ticker']
+    ticker = request.form['ticker'].upper()
     start_date = request.form['start_date']
     end_date = request.form['end_date']
 
@@ -43,9 +43,6 @@ def plot():
 
     data = data.sort_index(ascending=False)
 
-    if len(data) > 20:
-        data = data.head(20)
-
     # Calculate statistics
     min_val = data['close'].min()
     min_price = min_val.iloc[0] if isinstance(min_val, pd.Series) else min_val
@@ -55,8 +52,17 @@ def plot():
     mean_price = mean_val.iloc[0] if isinstance(mean_val, pd.Series) else mean_val
 
     # Generate the plot
+    plot_data_df = data.sort_index(ascending=True)
+    num_dates = len(plot_data_df.index)
     plt.figure(figsize=(10, 6))
-    plt.plot(range(len(data.index)), data['close'], marker='o')
+
+    markersize = 5
+    if num_dates > 50:
+        markersize = 1
+    elif num_dates > 20:
+        markersize = 3
+
+    plt.plot(range(num_dates), plot_data_df['close'], marker='o', markersize=markersize)
     plt.title(f'{ticker} Stock Price')
     plt.xlabel('Date')
     plt.ylabel('Price (USD)')
@@ -64,8 +70,15 @@ def plot():
 
     # Format the x-axis to show dates
     ax = plt.gca()
-    ax.set_xticks(range(len(data.index))) # Set numerical ticks
-    ax.set_xticklabels([d.strftime('%Y-%m-%d') for d in data.index], rotation=90) # Set custom labels
+    if num_dates > 20:
+        step = num_dates // 10
+        ticks = range(0, num_dates, step)
+        labels = [plot_data_df.index[i].strftime('%Y-%m-%d') for i in ticks]
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels, rotation=90)
+    else:
+        ax.set_xticks(range(num_dates))
+        ax.set_xticklabels([d.strftime('%Y-%m-%d') for d in plot_data_df.index], rotation=90)
     plt.tight_layout() # Adjust layout to prevent labels from being cut off
 
 
@@ -85,13 +98,17 @@ def plot():
         'volume': '{:,}'.format
     }
 
+    table_data = data
+    if len(data) > 20:
+        table_data = data.head(20)
+
     return render_template('result.html',
                            ticker=ticker,
                            min_price=f'{min_price:.2f}',
                            max_price=f'{max_price:.2f}',
                            mean_price=f'{mean_price:.2f}',
                            plot_url=plot_url,
-                           data_table=data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters))
+                           data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters))
 
 if __name__ == '__main__':
     app.run(debug=True)
