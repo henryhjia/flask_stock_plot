@@ -51,15 +51,15 @@ The app will:
 ## Running the Application Locally
   1. Activate the virtual environment 
   ```
-  $ source venv/bin/activate
+  source venv/bin/activate
   ```
   2. Install the required dependencies
   ```
-  $ pip install -r requirements.txt
+  pip install -r requirements.txt
   ```
   3. Start the Flask application
   ```
-  $ python app.py
+  python app.py
   ```
   4. Open the app in your browser
   On your browser, go to [http://127.0.0.0:5000](http:/127/0/0/1:5000)
@@ -67,14 +67,14 @@ The app will:
 
 ## Unit Test in Local Enrionment
 ```
-  $ pytest
+  pytest
 ```
  
 ## Deploment To GCP 
 ```
-  $ git add .
-  $ git commit -m 'new features'
-  $ git push
+  git add .
+  git commit -m 'new features'
+  git push
 ```
   The git push will trigger CI/CD deployment.
 
