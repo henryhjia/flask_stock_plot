@@ -1,7 +1,22 @@
-  This is a project to retrieve a stock price.  Required field: Stock Ticket, Start Date, End Date.  It will retrieve the historic stock price
-  from yahoo finance for the date range. Then it will plot the stock price vs date.  It will also print out the most recent stock price up to 20 days.
+# Stock Price Viewer
+## roject Overview
 
-  Here is the directory structures:
+**Stock Price Viewer** is a web application designed to fetch and visualize historical stock prices from Yahoo Finance.
+The application is developed **with the help of AI-assisted programming using Gemini-pro-2.5,** which helped streamline the coding process and improve efficiency.
+
+Given the following **required fields:**
+
+- Stock Ticker
+- Start Date
+- End Date
+
+The app will:
+
+- Retrieve historical stock prices for the specified date range from Yahoo Finance.
+- Generate a plot of stock price versus date for easy visualization.
+- Display the most recent stock price, covering up to the last 20 days.
+
+## Project structures
   ```
     1 /home/henryjia/Projects/flask_stock_plot/
     2 ├───.gcloudignore             # Specifies files to ignore when deploying to Google Cloud.
@@ -33,20 +48,35 @@
    28     └───share/...             # Shared data for packages in the virtual environment.
   ```
 
-  To run locally:
-  1. $ source venv/bin/activate
-  2. $ pip install -r requirements.txt
-  3. $ python app.py
-  4. On your browser, go to http://127.0.0.0:5000
+## Running the Application Locally
+  1. Activate the virtual environment 
+  ```
+  $ source venv/bin/activate
+  ```
+  2. Install the required dependencies
+  ```
+  $ pip install -r requirements.txt
+  ```
+  3. Start the Flask application
+  ```
+  $ python app.py
+  ```
+  4. Open the app in your browser
+  On your browser, go to [http://127.0.0.0:5000](http:/127/0/0/1:5000)
      The Stock Viewer GUI will appears and you can enter required data to get result.
 
-  To test locally:
+## Unit Test in local enrionment
+```
   $ pytest
-
-  After unit test passed, to deploy:
+```
+ 
+## Deploment To GCP 
+```
   $ git add .
   $ git commit -m 'new features'
   $ git push
+```
+  The git push will trigger CI/CD deployment.
 
-  To run in the GCP:
-  https://flask-stock-plot.uc.r.appspot.com/
+## Running the application in GCP
+  Open the app in the broser: [https://flask-stock-plot.uc.r.appspot.com/](https://flask-stock-plot.uc.r.appspot.com/)
