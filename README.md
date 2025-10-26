@@ -62,7 +62,7 @@ The app will:
   python app.py
   ```
   4. Open the app in your browser
-  Visit [http://127.0.0.0:5000](http:/127/0/0/1:5000) &rarr; to access the **Stock Price Viewer.**
+  Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) &rarr; to access the **Stock Price Viewer.**
      
 
 ## Unit Test in Local Enrionment
