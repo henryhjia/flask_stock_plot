@@ -1,5 +1,5 @@
 # Stock Price Viewer
-## roject Overview
+## Project Overview
 
 **Stock Price Viewer** is a web application designed to fetch and visualize historical stock prices from Yahoo Finance.
 The application is developed **with the help of AI-assisted programming using Gemini-pro-2.5,** which helped streamline the coding process and improve efficiency.
@@ -16,7 +16,7 @@ The app will:
 - Generate a plot of stock price versus date for easy visualization.
 - Display the most recent stock price, covering up to the last 20 days.
 
-## Project structures
+## Project Structures
   ```
     1 /home/henryjia/Projects/flask_stock_plot/
     2 ├───.gcloudignore             # Specifies files to ignore when deploying to Google Cloud.
@@ -65,7 +65,7 @@ The app will:
   On your browser, go to [http://127.0.0.0:5000](http:/127/0/0/1:5000)
      The Stock Viewer GUI will appears and you can enter required data to get result.
 
-## Unit Test in local enrionment
+## Unit Test in Local Enrionment
 ```
   $ pytest
 ```
@@ -78,5 +78,5 @@ The app will:
 ```
   The git push will trigger CI/CD deployment.
 
-## Running the application in GCP
+## Running the Application on GCP
   Open the app in the broser: [https://flask-stock-plot.uc.r.appspot.com/](https://flask-stock-plot.uc.r.appspot.com/)
