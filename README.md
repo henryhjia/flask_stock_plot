@@ -62,8 +62,8 @@ The app will:
   python app.py
   ```
   4. Open the app in your browser
-  On your browser, go to [http://127.0.0.0:5000](http:/127/0/0/1:5000)
-     The Stock Viewer GUI will appears and you can enter required data to get result.
+  Visit [http://127.0.0.0:5000](http:/127/0/0/1:5000) &rarr; to access the **Stock Price Viewer.**
+     
 
 ## Unit Test in Local Enrionment
 ```
