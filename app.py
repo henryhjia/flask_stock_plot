@@ -15,22 +15,17 @@ from matplotlib.ticker import FuncFormatter
 def date_format(x, pos=None):
     return mdates.num2date(x).strftime('%Y-%m-%d')
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
     today = datetime.now().strftime('%Y-%m-%d')
-    year_start = datetime.now().replace(month=1, day=1).strftime('%Y-%m-%d')
-    return render_template('index.html', today=today, year_start=year_start)
+    default_start_date = (datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d')
+    return render_template('index.html', today=today, default_start_date=default_start_date)
 
-@app.route('/plot', methods=['POST'])
-def plot():
-    ticker = request.form['ticker'].upper()
-    start_date = request.form['start_date']
-    end_date = request.form['end_date']
-
+def render_plot_page(ticker, start_date, end_date, date_range=None):
     # Download the data for the plot and table, based on user's date range
     plot_data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
     
@@ -71,13 +66,17 @@ def plot():
     num_dates = len(plot_data_df.index)
     plt.figure(figsize=(10, 6))
 
-    markersize = 5
-    if num_dates > 50:
-        markersize = 1
-    elif num_dates > 20:
-        markersize = 3
+    marker = ''
+    markersize = 0
+    linewidth = 1.5 # A slightly thicker default for mid-range plots
+    if num_dates < 20:
+        marker = 'o'
+        markersize = 5
+        linewidth = 1 # Thinner line for plots with markers
+    elif num_dates > 252:
+        linewidth = 0.8 # Thinner line for long plots
 
-    plt.plot(range(num_dates), plot_data_df['close'], marker='o', markersize=markersize)
+    plt.plot(range(num_dates), plot_data_df['close'], marker=marker, markersize=markersize, linewidth=linewidth)
     plt.title(f'{ticker} Stock Price')
     plt.xlabel('Date')
     plt.ylabel('Price (USD)')
@@ -171,7 +170,29 @@ def plot():
                            mean_price=f'{mean_price:.2f}',
                            plot_url=plot_url,
                            data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters),
-                           market_data=market_data)
+                           market_data=market_data,
+                           date_range=date_range)
+
+@app.route('/plot', methods=['POST'])
+def plot():
+    ticker = request.form['ticker'].upper()
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+    return render_plot_page(ticker, start_date, end_date, date_range="custom")
+
+@app.route('/plot/<ticker>/<date_range>')
+def plot_with_range(ticker, date_range):
+    end_date = datetime.now()
+    if date_range == 'YTD':
+        start_date = end_date.replace(month=1, day=1)
+    elif date_range == '1y':
+        start_date = end_date - timedelta(days=365)
+    elif date_range == '5y':
+        start_date = end_date - timedelta(days=365*5)
+    else:
+        return "Invalid date range", 400
+
+    return render_plot_page(ticker, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), date_range=date_range)
 
 if __name__ == '__main__':
     app.run(debug=True)

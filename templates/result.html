@@ -52,6 +52,11 @@
                     </div>
                 </div>
             </div>
+            <div class="text-right mb-2">
+                <a href="/plot/{{ ticker }}/YTD" class="btn btn-sm {% if date_range == 'YTD' %}btn-primary{% else %}btn-outline-primary{% endif %}">YTD</a>
+                <a href="/plot/{{ ticker }}/1y" class="btn btn-sm {% if date_range == '1y' %}btn-primary{% else %}btn-outline-primary{% endif %}">1 Year</a>
+                <a href="/plot/{{ ticker }}/5y" class="btn btn-sm {% if date_range == '5y' %}btn-primary{% else %}btn-outline-primary{% endif %}">5 Years</a>
+            </div>
             <img src="{{ plot_url }}" alt="Stock Price Plot" class="img-fluid rounded mx-auto d-block my-4">
             <a href="/" class="btn btn-secondary btn-block">Go Back</a>
             <h2 class="text-center mt-4">Daily Prices</h2>
