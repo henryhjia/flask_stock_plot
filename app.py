@@ -28,9 +28,9 @@ def index():
 def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_range=None):
     # Download the data for the plot and table, based on user's date range
     if period:
-        plot_data = yf.download(ticker, period=period, auto_adjust=True)
+        plot_data = yf.download(ticker, period=period, auto_adjust=True, progress=False)
     else:
-        plot_data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
+        plot_data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True, progress=False)
     
     new_columns = []
     for col in plot_data.columns:
@@ -46,7 +46,7 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
     plot_data = plot_data.sort_index(ascending=False)
 
     # Download 5 years of data for performance calculation
-    perf_data = yf.download(ticker, period='5y', auto_adjust=True)
+    perf_data = yf.download(ticker, period='5y', auto_adjust=True, progress=False)
     if not perf_data.empty:
         new_columns_perf = []
         for col in perf_data.columns:
@@ -127,14 +127,14 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
     indices = {'S&P 500': '^GSPC', 'DOW': '^DJI', 'NASDAQ': '^IXIC'}
 
     for name, ticker_symbol in indices.items():
-        index_data = yf.download(ticker_symbol, period='5y', auto_adjust=True)
+        index_data = yf.download(ticker_symbol, period='5y', auto_adjust=True, progress=False)
         current = index_data['Close'].values[-1].item()
         ytd_start = index_data[index_data.index.year == index_data.index.year[-1]]['Close'].values[0].item()
         ytd = (current - ytd_start) / ytd_start * 100
         one_year = (current - index_data['Close'].values[-252].item()) / index_data['Close'].values[-252].item() * 100
         five_year = (current - index_data['Close'].values[0].item()) / index_data['Close'].values[0].item() * 100
 
-        index_data_max = yf.download(ticker_symbol, period='max', auto_adjust=True)
+        index_data_max = yf.download(ticker_symbol, period='max', auto_adjust=True, progress=False)
         max_perf = (index_data_max['Close'].values[-1].item() - index_data_max['Close'].values[0].item()) / index_data_max['Close'].values[0].item() * 100
 
         market_data.append({
@@ -167,7 +167,7 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
         else:
             ticker_5y = "N/A"
 
-        perf_data_max = yf.download(ticker, period='max', auto_adjust=True)
+        perf_data_max = yf.download(ticker, period='max', auto_adjust=True, progress=False)
         if not perf_data_max.empty:
             new_columns_perf_max = []
             for col in perf_data_max.columns:
