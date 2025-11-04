@@ -19,6 +19,7 @@
                             <th>YTD Performance</th>
                             <th>1-Year Performance</th>
                             <th>5-Year Performance</th>
+                            <th>MAX Performance</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -29,6 +30,7 @@
                             <td>{{ index.ytd }}</td>
                             <td>{{ index.one_year }}</td>
                             <td>{{ index.five_year }}</td>
+                            <td>{{ index.max }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -53,9 +55,12 @@
                 </div>
             </div>
             <div class="text-right mb-2">
-                <a href="/plot/{{ ticker }}/YTD" class="btn btn-sm {% if date_range == 'YTD' %}btn-primary{% else %}btn-outline-primary{% endif %}">YTD</a>
-                <a href="/plot/{{ ticker }}/1y" class="btn btn-sm {% if date_range == '1y' %}btn-primary{% else %}btn-outline-primary{% endif %}">1 Year</a>
-                <a href="/plot/{{ ticker }}/5y" class="btn btn-sm {% if date_range == '5y' %}btn-primary{% else %}btn-outline-primary{% endif %}">5 Years</a>
+                <div class="btn-group" role="group" aria-label="Date Range Selection">
+                    <a href="/plot/{{ ticker }}/YTD" class="btn btn-md {% if date_range == 'YTD' %}btn-primary{% else %}btn-outline-primary{% endif %}">YTD</a>
+                    <a href="/plot/{{ ticker }}/1y" class="btn btn-md {% if date_range == '1y' %}btn-primary{% else %}btn-outline-primary{% endif %}">1 Year</a>
+                    <a href="/plot/{{ ticker }}/5y" class="btn btn-md {% if date_range == '5y' %}btn-primary{% else %}btn-outline-primary{% endif %}">5 Years</a>
+                    <a href="/plot/{{ ticker }}/MAX" class="btn btn-md {% if date_range == 'MAX' %}btn-primary{% else %}btn-outline-primary{% endif %}">MAX</a>
+                </div>
             </div>
             <img src="{{ plot_url }}" alt="Stock Price Plot" class="img-fluid rounded mx-auto d-block my-4">
             <a href="/" class="btn btn-secondary btn-block">Go Back</a>
