@@ -9,6 +9,31 @@
 <body>
     <div class="container">
         <div class="card">
+            <h2 class="text-center mt-4">Market Performance</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Index</th>
+                            <th>Current Value</th>
+                            <th>YTD Performance</th>
+                            <th>1-Year Performance</th>
+                            <th>5-Year Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index in market_data %}
+                        <tr>
+                            <td>{{ index.name }}</td>
+                            <td>{{ index.current }}</td>
+                            <td>{{ index.ytd }}</td>
+                            <td>{{ index.one_year }}</td>
+                            <td>{{ index.five_year }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <h1>{{ ticker }} Stock Price</h1>
             <div class="row text-center">
                 <div class="col-md-4">

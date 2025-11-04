@@ -102,13 +102,32 @@ def plot():
     if len(data) > 20:
         table_data = data.head(20)
 
+    market_data = []
+    indices = {'S&P 500': '^GSPC', 'DOW': '^DJI', 'NASDAQ': '^IXIC'}
+
+    for name, ticker_symbol in indices.items():
+        data = yf.download(ticker_symbol, period='5y', auto_adjust=True)
+        current = data['Close'].values[-1].item()
+        ytd_start = data[data.index.year == data.index.year[-1]]['Close'].values[0].item()
+        ytd = (current - ytd_start) / ytd_start * 100
+        one_year = (current - data['Close'].values[-252].item()) / data['Close'].values[-252].item() * 100
+        five_year = (current - data['Close'].values[0].item()) / data['Close'].values[0].item() * 100
+        market_data.append({
+            'name': name,
+            'current': f'{current:,.2f}',
+            'ytd': f'{ytd:.2f}%',
+            'one_year': f'{one_year:.2f}%',
+            'five_year': f'{five_year:.2f}%'
+        })
+
     return render_template('result.html',
                            ticker=ticker,
                            min_price=f'{min_price:.2f}',
                            max_price=f'{max_price:.2f}',
                            mean_price=f'{mean_price:.2f}',
                            plot_url=plot_url,
-                           data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters))
+                           data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters),
+                           market_data=market_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
