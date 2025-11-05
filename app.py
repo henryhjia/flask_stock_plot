@@ -251,7 +251,8 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
                            plot_url=plot_url,
                            data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters),
                            market_data=market_data,
-                           date_range=date_range)
+                           date_range=date_range,
+                           end_date_display=perf_data.index[-1].strftime('%Y-%m-%d'))
 
 @app.route('/plot', methods=['POST'])
 def plot():
