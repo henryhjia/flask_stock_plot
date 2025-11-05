@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# Simple in-memory cache for stock data
+stock_data_cache = {}
+
 @app.route('/')
 def index():
     today = datetime.now().strftime('%Y-%m-%d')
@@ -26,44 +29,50 @@ def index():
     return render_template('index.html', today=today, default_start_date=default_start_date)
 
 def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_range=None):
-    # Download the data for the plot and table, based on user's date range
-    if period:
-        plot_data = yf.download(ticker, period=period, auto_adjust=True, progress=False)
+    # Check cache for full_data
+    if ticker in stock_data_cache:
+        full_data = stock_data_cache[ticker]
     else:
-        plot_data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True, progress=False)
-    
-    new_columns = []
-    for col in plot_data.columns:
-        if isinstance(col, tuple):
-            new_columns.append(col[0].lower())
-        else:
-            new_columns.append(col.lower())
-    plot_data.columns = new_columns
+        # Download the maximum available data for the ticker once
+        full_data = yf.download(ticker, period='max', auto_adjust=True, progress=False)
+        if full_data.empty:
+            return render_template('error.html')
+        
+        # Normalize column names
+        new_columns = []
+        for col in full_data.columns:
+            if isinstance(col, tuple):
+                new_columns.append(col[0].lower())
+            else:
+                new_columns.append(col.lower())
+        full_data.columns = new_columns
+        stock_data_cache[ticker] = full_data # Store in cache
 
+    # Determine plot_data based on requested range by slicing full_data
+    if start_date and end_date:
+        plot_data = full_data[(full_data.index >= start_date) & (full_data.index <= end_date)]
+    else: # This covers the 'MAX' case where start_date and end_date are None
+        plot_data = full_data
+    
     if plot_data.empty:
         return render_template('error.html')
 
     plot_data = plot_data.sort_index(ascending=False)
 
-    # Download 5 years of data for performance calculation
-    perf_data = yf.download(ticker, period='5y', auto_adjust=True, progress=False)
-    if not perf_data.empty:
-        new_columns_perf = []
-        for col in perf_data.columns:
-            if isinstance(col, tuple):
-                new_columns_perf.append(col[0].lower())
-            else:
-                new_columns_perf.append(col.lower())
-        perf_data.columns = new_columns_perf
+    # Use full_data for performance calculation, slicing as needed
+    perf_data = full_data.copy() # Use a copy to avoid modifying full_data directly
 
     # Calculate statistics from plot_data
     min_val = plot_data['close'].min()
     min_price = min_val.iloc[0] if isinstance(min_val, pd.Series) else min_val
     max_val = plot_data['close'].max()
     max_price = max_val.iloc[0] if isinstance(max_val, pd.Series) else max_val
-    mean_val = plot_data['close'].mean()
-    mean_price = mean_val.iloc[0] if isinstance(mean_val, pd.Series) else mean_val
-
+    
+    total_return = None
+    if date_range == "custom":
+        start_price = plot_data['close'].iloc[-1]
+        end_price = plot_data['close'].iloc[0]
+        total_return = (end_price - start_price) / start_price * 100
     # Generate the plot from plot_data
     plot_data_df = plot_data.sort_index(ascending=True)
     num_dates = len(plot_data_df.index)
@@ -127,59 +136,91 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
     indices = {'S&P 500': '^GSPC', 'DOW': '^DJI', 'NASDAQ': '^IXIC'}
 
     for name, ticker_symbol in indices.items():
-        index_data = yf.download(ticker_symbol, period='5y', auto_adjust=True, progress=False)
-        current = index_data['Close'].values[-1].item()
-        ytd_start = index_data[index_data.index.year == index_data.index.year[-1]]['Close'].values[0].item()
-        ytd = (current - ytd_start) / ytd_start * 100
-        one_year = (current - index_data['Close'].values[-252].item()) / index_data['Close'].values[-252].item() * 100
-        five_year = (current - index_data['Close'].values[0].item()) / index_data['Close'].values[0].item() * 100
+        # Check cache for index_data_full
+        if ticker_symbol in stock_data_cache:
+            index_data_full = stock_data_cache[ticker_symbol]
+        else:
+            # Download max data for each index once
+            index_data_full = yf.download(ticker_symbol, period='max', auto_adjust=True, progress=False)
+            if index_data_full.empty:
+                continue
+            index_data_full.columns = [col[0].lower() if isinstance(col, tuple) else col.lower() for col in index_data_full.columns]
+            stock_data_cache[ticker_symbol] = index_data_full # Store in cache
 
-        index_data_max = yf.download(ticker_symbol, period='max', auto_adjust=True, progress=False)
-        max_perf = (index_data_max['Close'].values[-1].item() - index_data_max['Close'].values[0].item()) / index_data_max['Close'].values[0].item() * 100
+        current = index_data_full['close'].iloc[-1].item()
+
+        # Calculate YTD
+        ytd_start_date = datetime(index_data_full.index[-1].year, 1, 1)
+        ytd_data = index_data_full[index_data_full.index >= ytd_start_date]
+        ytd = None
+        if not ytd_data.empty and len(ytd_data) > 0:
+            ytd_start_price = ytd_data['close'].iloc[0].item()
+            ytd = (current - ytd_start_price) / ytd_start_price * 100
+
+        # Calculate 1-year performance
+        one_year_ago = index_data_full.index[-1] - timedelta(days=365)
+        one_year_data = index_data_full[index_data_full.index >= one_year_ago]
+        one_year = None
+        if not one_year_data.empty and len(one_year_data) >= 2: # At least two data points for calculation
+            one_year_start_price = one_year_data['close'].iloc[0].item()
+            one_year = (current - one_year_start_price) / one_year_start_price * 100
+
+        # Calculate 5-year performance
+        five_year_ago = index_data_full.index[-1] - timedelta(days=365*5)
+        five_year_data = index_data_full[index_data_full.index >= five_year_ago]
+        five_year = None
+        if not five_year_data.empty and len(five_year_data) > 0:
+            five_year_start_price = five_year_data['close'].iloc[0].item()
+            five_year = (current - five_year_start_price) / five_year_start_price * 100
+
+        # Calculate MAX performance
+        max_perf = None
+        if not index_data_full.empty and len(index_data_full) > 0:
+            max_start_price = index_data_full['close'].iloc[0].item()
+            max_perf = (current - max_start_price) / max_start_price * 100
 
         market_data.append({
             'name': name,
             'current': f'{current:,.2f}',
-            'ytd': f'{ytd:.2f}%',
-            'one_year': f'{one_year:.2f}%',
-            'five_year': f'{five_year:.2f}%',
-            'max': f'{max_perf:.2f}%'
+            'ytd': f'{ytd:.2f}%' if isinstance(ytd, (int, float)) else ytd,
+            'one_year': f'{one_year:.2f}%' if isinstance(one_year, (int, float)) else one_year,
+            'five_year': f'{five_year:.2f}%' if isinstance(five_year, (int, float)) else five_year,
+            'max': f'{max_perf:.2f}%' if isinstance(max_perf, (int, float)) else max_perf
         })
 
-    # Calculate performance for the selected ticker from perf_data
+    # Calculate performance for the selected ticker from perf_data (which is full_data)
     if not perf_data.empty:
-        ticker_current = perf_data['close'].values[-1].item()
+        ticker_current = perf_data['close'].iloc[-1].item()
 
-        ytd_data = perf_data[perf_data.index.year == perf_data.index.year[-1]]
-        if not ytd_data.empty:
-            ticker_ytd_start = ytd_data['close'].values[0].item()
+        # Calculate YTD for ticker
+        ytd_start_date_ticker = datetime(perf_data.index[-1].year, 1, 1)
+        ytd_data_ticker = perf_data[perf_data.index >= ytd_start_date_ticker]
+        ticker_ytd = None
+        if not ytd_data_ticker.empty and len(ytd_data_ticker) > 0:
+            ticker_ytd_start = ytd_data_ticker['close'].iloc[0].item()
             ticker_ytd = (ticker_current - ticker_ytd_start) / ticker_ytd_start * 100
-        else:
-            ticker_ytd = "N/A"
 
-        if len(perf_data) >= 252:
-            ticker_1y = (ticker_current - perf_data['close'].values[-252].item()) / perf_data['close'].values[-252].item() * 100
-        else:
-            ticker_1y = "N/A"
+        # Calculate 1-year performance for ticker
+        one_year_ago_ticker = perf_data.index[-1] - timedelta(days=365)
+        one_year_data_ticker = perf_data[perf_data.index >= one_year_ago_ticker]
+        ticker_1y = None
+        if not one_year_data_ticker.empty and len(one_year_data_ticker) >= 2:
+            ticker_1y_start = one_year_data_ticker['close'].iloc[0].item()
+            ticker_1y = (ticker_current - ticker_1y_start) / ticker_1y_start * 100
 
-        if len(perf_data) > 0:
-            ticker_5y = (ticker_current - perf_data['close'].values[0].item()) / perf_data['close'].values[0].item() * 100
-        else:
-            ticker_5y = "N/A"
+        # Calculate 5-year performance for ticker
+        five_year_ago_ticker = perf_data.index[-1] - timedelta(days=365*5)
+        five_year_data_ticker = perf_data[perf_data.index >= five_year_ago_ticker]
+        ticker_5y = None
+        if not five_year_data_ticker.empty and len(five_year_data_ticker) > 0:
+            ticker_5y_start = five_year_data_ticker['close'].iloc[0].item()
+            ticker_5y = (ticker_current - ticker_5y_start) / ticker_5y_start * 100
 
-        perf_data_max = yf.download(ticker, period='max', auto_adjust=True, progress=False)
-        if not perf_data_max.empty:
-            new_columns_perf_max = []
-            for col in perf_data_max.columns:
-                if isinstance(col, tuple):
-                    new_columns_perf_max.append(col[0].lower())
-                else:
-                    new_columns_perf_max.append(col.lower())
-            perf_data_max.columns = new_columns_perf_max
-            
-            max_perf = (perf_data_max['close'].values[-1].item() - perf_data_max['close'].values[0].item()) / perf_data_max['close'].values[0].item() * 100
-        else:
-            max_perf = "N/A"
+        # Calculate MAX performance for ticker (using full_data)
+        max_perf_ticker = None
+        if not perf_data.empty and len(perf_data) > 0:
+            max_perf_ticker_start = perf_data['close'].iloc[0].item()
+            max_perf_ticker = (ticker_current - max_perf_ticker_start) / max_perf_ticker_start * 100
 
         market_data.append({
             'name': ticker,
@@ -187,14 +228,26 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
             'ytd': f'{ticker_ytd:.2f}%' if isinstance(ticker_ytd, (int, float)) else ticker_ytd,
             'one_year': f'{ticker_1y:.2f}%' if isinstance(ticker_1y, (int, float)) else ticker_1y,
             'five_year': f'{ticker_5y:.2f}%' if isinstance(ticker_5y, (int, float)) else ticker_5y,
-            'max': f'{max_perf:.2f}%' if isinstance(max_perf, (int, float)) else max_perf
+            'max': f'{max_perf_ticker:.2f}%' if isinstance(max_perf_ticker, (int, float)) else max_perf_ticker
         })
+
+    if date_range == 'YTD':
+        total_return = market_data[-1]['ytd']
+    elif date_range == '1y':
+        total_return = market_data[-1]['one_year']
+    elif date_range == '5y':
+        total_return = market_data[-1]['five_year']
+    elif date_range == 'MAX':
+        total_return = market_data[-1]['max']
+    else:
+        total_return = f'{total_return:.2f}%' if total_return is not None else 'N/A'
+
 
     return render_template('result.html',
                            ticker=ticker,
                            min_price=f'{min_price:.2f}',
                            max_price=f'{max_price:.2f}',
-                           mean_price=f'{mean_price:.2f}',
+                           total_return=total_return,
                            plot_url=plot_url,
                            data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters),
                            market_data=market_data,
@@ -209,11 +262,13 @@ def plot():
 
 @app.route('/plot/<ticker>/<date_range>')
 def plot_with_range(ticker, date_range):
-    if date_range == 'MAX':
-        return render_plot_page(ticker, period="max", date_range=date_range)
-    
     end_date = datetime.now()
-    if date_range == 'YTD':
+    if date_range == 'MAX':
+        # For MAX, we can just use the full data without specific start/end dates for slicing
+        # The render_plot_page will handle it by default when start_date/end_date are None
+        start_date = None
+        end_date = None
+    elif date_range == 'YTD':
         start_date = end_date.replace(month=1, day=1)
     elif date_range == '1y':
         start_date = end_date - timedelta(days=365)
@@ -222,7 +277,7 @@ def plot_with_range(ticker, date_range):
     else:
         return "Invalid date range", 400
 
-    return render_plot_page(ticker, start_date=start_date.strftime('%Y-%m-%d'), end_date=end_date.strftime('%Y-%m-%d'), date_range=date_range)
+    return render_plot_page(ticker, start_date=start_date.strftime('%Y-%m-%d') if start_date else None, end_date=end_date.strftime('%Y-%m-%d') if end_date else None, date_range=date_range)
 
 if __name__ == '__main__':
     app.run(debug=True)
