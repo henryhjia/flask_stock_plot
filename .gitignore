@@ -40,3 +40,5 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+
+readme.txt
