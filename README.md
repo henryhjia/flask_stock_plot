@@ -70,6 +70,48 @@ The app will:
   pytest
 ```
  
+  Custom Date Range Tests
+
+   1. `test_plot`:
+       * Purpose: To verify that the application can successfully generate a stock plot for a short, custom date range (3 days).
+       * Action: It sends a POST request to the /plot endpoint with a ticker, start date, and end date.
+       * Verification: It checks that the server responds with a success status code (200).
+
+   2. `test_plot_long_range`:
+       * Purpose: To ensure the application works correctly for a longer, custom date range (30 days), which might involve different
+          plot rendering logic.
+       * Action: Similar to test_plot, it sends a POST request to /plot but with a wider date range.
+       * Verification: It asserts a success status code (200).
+
+   3. `test_plot_no_data`:
+       * Purpose: To test the application's error handling when no data is available for a given ticker or date range.
+       * Action: It sends a POST request to /plot for a ticker that is expected to return no data.
+       * Verification: It checks that the server responds with a success status code (200) and that the returned HTML page contains
+         the expected error message ("No data found") and a "Go Back" button.
+
+  Predefined Date Range Tests
+
+   4. `test_plot_ytd`:
+       * Purpose: To test the Year-to-Date (YTD) functionality.
+       * Action: It sends a GET request to the /plot/<ticker>/YTD endpoint.
+       * Verification: It asserts a success status code (200).
+
+   5. `test_plot_1y`:
+       * Purpose: To test the 1-Year date range functionality.
+       * Action: It sends a GET request to the /plot/<ticker>/1y endpoint.
+       * Verification: It asserts a success status code (200).
+
+   6. `test_plot_5y`:
+       * Purpose: To test the 5-Year date range functionality.
+       * Action: It sends a GET request to the /plot/<ticker>/5y endpoint.
+       * Verification: It asserts a success status code (200).
+
+   7. `test_plot_max`:
+       * Purpose: To test the MAX (maximum available data) date range functionality.
+       * Action: It sends a GET request to the /plot/<ticker>/MAX endpoint.
+   - Verification: It asserts a success status code (200).
+
+
 ## Deploment To GCP 
 ```
   git add .

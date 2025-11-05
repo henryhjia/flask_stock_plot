@@ -102,5 +102,41 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'No data found for the given ticker and date range.', response.data)
         self.assertIn(b'<a href="/" class="btn btn-primary btn-block">Go Back</a>', response.data)
 
+    @patch('yfinance.download')
+    def test_plot_ytd(self, mock_download):
+        mock_download.return_value = pd.DataFrame({
+            'Open': [150], 'High': [155], 'Low': [149],
+            'Close': [152], 'Volume': [1000]
+        }, index=pd.to_datetime(['2023-01-01']))
+        response = self.app.get('/plot/AAPL/YTD')
+        self.assertEqual(response.status_code, 200)
+
+    @patch('yfinance.download')
+    def test_plot_1y(self, mock_download):
+        mock_download.return_value = pd.DataFrame({
+            'Open': [150], 'High': [155], 'Low': [149],
+            'Close': [152], 'Volume': [1000]
+        }, index=pd.to_datetime(['2023-01-01']))
+        response = self.app.get('/plot/AAPL/1y')
+        self.assertEqual(response.status_code, 200)
+
+    @patch('yfinance.download')
+    def test_plot_5y(self, mock_download):
+        mock_download.return_value = pd.DataFrame({
+            'Open': [150], 'High': [155], 'Low': [149],
+            'Close': [152], 'Volume': [1000]
+        }, index=pd.to_datetime(['2023-01-01']))
+        response = self.app.get('/plot/AAPL/5y')
+        self.assertEqual(response.status_code, 200)
+
+    @patch('yfinance.download')
+    def test_plot_max(self, mock_download):
+        mock_download.return_value = pd.DataFrame({
+            'Open': [150], 'High': [155], 'Low': [149],
+            'Close': [152], 'Volume': [1000]
+        }, index=pd.to_datetime(['2023-01-01']))
+        response = self.app.get('/plot/AAPL/MAX')
+        self.assertEqual(response.status_code, 200)
+
 if __name__ == '__main__':
     unittest.main()
