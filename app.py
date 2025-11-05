@@ -67,9 +67,12 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
     min_price = min_val.iloc[0] if isinstance(min_val, pd.Series) else min_val
     max_val = plot_data['close'].max()
     max_price = max_val.iloc[0] if isinstance(max_val, pd.Series) else max_val
-    mean_val = plot_data['close'].mean()
-    mean_price = mean_val.iloc[0] if isinstance(mean_val, pd.Series) else mean_val
-
+    
+    total_return = None
+    if date_range == "custom":
+        start_price = plot_data['close'].iloc[-1]
+        end_price = plot_data['close'].iloc[0]
+        total_return = (end_price - start_price) / start_price * 100
     # Generate the plot from plot_data
     plot_data_df = plot_data.sort_index(ascending=True)
     num_dates = len(plot_data_df.index)
@@ -228,11 +231,23 @@ def render_plot_page(ticker, start_date=None, end_date=None, period=None, date_r
             'max': f'{max_perf_ticker:.2f}%' if isinstance(max_perf_ticker, (int, float)) else max_perf_ticker
         })
 
+    if date_range == 'YTD':
+        total_return = market_data[-1]['ytd']
+    elif date_range == '1y':
+        total_return = market_data[-1]['one_year']
+    elif date_range == '5y':
+        total_return = market_data[-1]['five_year']
+    elif date_range == 'MAX':
+        total_return = market_data[-1]['max']
+    else:
+        total_return = f'{total_return:.2f}%' if total_return is not None else 'N/A'
+
+
     return render_template('result.html',
                            ticker=ticker,
                            min_price=f'{min_price:.2f}',
                            max_price=f'{max_price:.2f}',
-                           mean_price=f'{mean_price:.2f}',
+                           total_return=total_return,
                            plot_url=plot_url,
                            data_table=table_data.to_html(classes=['table', 'table-striped'], header="true", formatters=formatters),
                            market_data=market_data,
